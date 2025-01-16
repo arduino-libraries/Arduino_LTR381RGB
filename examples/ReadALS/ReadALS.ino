@@ -1,3 +1,17 @@
+/*
+  Arduino LTR381RGB - Read Aambient ligth sensor
+
+  This example reads the raw lux values from the LTR381RGB
+  sensor and continuously prints them to the Serial Monitor
+  or Serial Plotter.
+
+  The circuit:
+  - Arduino Uno WiFi R4
+  - Modulino light sensor
+
+  This example code is in the public domain.
+*/
+
 #include "Arduino_LTR381RGB.h"
 
 void setup() {
