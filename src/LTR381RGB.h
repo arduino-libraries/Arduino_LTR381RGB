@@ -30,7 +30,7 @@ class LTR381RGBClass {
 
     int readColors(int& r, int& g, int& b);
 
-    int readAmbientLight(int& als);
+    int readAmbientLight(int& lux);
     int readLux(int& lux);
 
     void setGain(int gain);

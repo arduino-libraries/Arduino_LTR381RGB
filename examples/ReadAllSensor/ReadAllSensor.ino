@@ -11,12 +11,12 @@ void setup() {
 }
 
 void loop() {
-  int r, g, b, als;
+  int r, g, b, rawlux;
   int lux;
 
-  if (RGB.readAmbientLight(als)) {
-    Serial.print("ALS: ");
-    Serial.print(als);
+  if (RGB.readAmbientLight(lux)) {
+    Serial.print("Raw Lux: ");
+    Serial.print(rawlux);
     Serial.print("\t");
   }
 

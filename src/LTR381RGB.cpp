@@ -120,7 +120,7 @@ int LTR381RGBClass::readColors(int& r, int& g, int& b) {
   return 1;
 }
 
-int LTR381RGBClass::readAmbientLight(int& als) {
+int LTR381RGBClass::readAmbientLight(int& lux) {
   enableALS();
   unsigned long start = millis();
   while(!available() && (millis() - start) < _timeout);
@@ -129,7 +129,7 @@ int LTR381RGBClass::readAmbientLight(int& als) {
   if(res != 1) {
     return 0;
   }
-  als = buf[2] << 16 | buf[1] << 8 | buf[0];
+  lux = buf[2] << 16 | buf[1] << 8 | buf[0];
 
   return 1;
 }
