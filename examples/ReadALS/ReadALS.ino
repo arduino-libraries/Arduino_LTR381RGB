@@ -1,5 +1,5 @@
 /*
-  Arduino LTR381RGB - Read Aambient ligth sensor
+  Arduino LTR381RGB - Read Ambient light sensor
 
   This example reads the raw lux values from the LTR381RGB
   sensor and continuously prints them to the Serial Monitor

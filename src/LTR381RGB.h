@@ -1,6 +1,6 @@
 /*
   Copyright (c) 2025 Arduino SA
-  his Source Code Form is subject to the terms fo the Mozilla
+  This Source Code Form is subject to the terms of the Mozilla
   Public License (MPL), v 2.0. You can obtain a copy of the MPL
   at http://mozilla.org/MPL/2.0/
 */
