@@ -1,0 +1,18 @@
+// Define the repository information in these attributes
+:repository-owner: arduino-libraries
+:repository-name: Arduino_LTR381RGB
+
+= Modbus Library for Arduino =
+
+image:https://github.com/{repository-owner}/{repository-name}/actions/workflows/check-arduino.yml/badge.svg["Check Arduino status", link="https://github.com/{repository-owner}/{repository-name}/actions/workflows/check-arduino.yml"]
+image:https://github.com/{repository-owner}/{repository-name}/actions/workflows/compile-examples.yml/badge.svg["Compile Examples status", link="https://github.com/{repository-owner}/{repository-name}/actions/workflows/compile-examples.yml"]
+image:https://github.com/{repository-owner}/{repository-name}/actions/workflows/spell-check.yml/badge.svg["Spell Check status", link="https://github.com/{repository-owner}/{repository-name}/actions/workflows/spell-check.yml"]
+
+Allows you to read RGB, Infrared and ambient light channels values from LITEON LTR381RGB sensor.
+
+== License ==
+
+Copyright (c) 2025 Arduino SA
+his Source Code Form is subject to the terms fo the Mozilla
+Public License (MPL), v 2.0. You can obtain a copy of the MPL
+at http://mozilla.org/MPL/2.0/
