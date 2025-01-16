@@ -1,0 +1,50 @@
+#######################################
+# Syntax Coloring Map For Arduino_LTR381RGB
+####################################### 
+# Class
+#######################################
+
+Arduino_LTR381RGB	KEYWORD1
+LTR381RGB	KEYWORD1
+RGB     KEYWORD1
+
+#######################################
+# Methods and Functions 
+#######################################	
+
+begin	KEYWORD2
+end	KEYWORD2
+readColors  KEYWORD2
+readAmbientLight    KEYWORD2
+readLux KEYWORD2
+setGain    KEYWORD2
+setADCResolution   KEYWORD2
+setMeasurementRate KEYWORD2
+setUpperThreshold  KEYWORD2
+setLowerThreshold  KEYWORD2
+setTimeout KEYWORD2
+enableALSInterrupt KEYWORD2
+disableALSInterrupt    KEYWORD2
+resetSW    KEYWORD2
+
+#######################################
+# Constants
+#######################################
+
+ADC_RES_16BIT   KEYWORD1
+ADC_RES_17BIT   KEYWORD1
+ADC_RES_18BIT   KEYWORD1
+ADC_RES_19BIT   KEYWORD1
+ADC_RES_20BIT   KEYWORD1
+
+ADC_MEAS_RATE_25MS  KEYWORD1
+ADC_MEAS_RATE_50MS  KEYWORD1
+ADC_MEAS_RATE_100MS KEYWORD1
+ADC_MEAS_RATE_200MS KEYWORD1
+ADC_MEAS_RATE_400MS KEYWORD1
+
+ALS_CS_GAIN_1   KEYWORD1
+ALS_CS_GAIN_3   KEYWORD1
+ALS_CS_GAIN_6   KEYWORD1
+ALS_CS_GAIN_9   KEYWORD1
+ALS_CS_GAIN_18  KEYWORD1
