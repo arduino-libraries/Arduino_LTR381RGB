@@ -20,7 +20,7 @@ class LTR381RGBClass {
 
     int readAmbientLight(int& lux);
     int readLux(int& lux);
-
+    int readIR(int& ir);
     void setGain(int gain);
     void setADCResolution(int resolution);
     void setMeasurementRate(int rate);

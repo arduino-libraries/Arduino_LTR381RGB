@@ -137,6 +137,19 @@ int LTR381RGBClass::readLux(int& lux) {
   return 1;
 }
 
+int LTR381RGBClass::readIR(int& ir) {
+  enableALS();
+  unsigned long start = millis();
+  while(!available() && (millis() - start) < _timeout);
+  uint8_t buf[3] = {0};
+  int res = readRegisters(LTR381RGB_CS_DATA_IR, buf, 3);
+  if(res != 1) {
+    return 0;
+  }
+  ir = buf[2] << 16 | buf[1] << 8 | buf[0];
+
+  return 1;
+}
 
 void LTR381RGBClass::setGain(int gain) {
   writeRegister(LTR381RGB_ALS_CS_GAIN, (0x07 & gain));
