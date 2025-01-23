@@ -303,6 +303,10 @@ int LTR381RGBClass::getADCRate(int rate) {
   }
 }
 
+void LTR381RGBClass::setInteruptPersistence(int persistence) {
+  writeRegister(LTR381RGB_INT_PST, (persistence << 4));
+}
+
 void LTR381RGBClass::enableALSInterrupt() {
   uint8_t res = readRegister(LTR381RGB_INT_CFG);
   writeRegister(LTR381RGB_INT_CFG, res | 0x04);

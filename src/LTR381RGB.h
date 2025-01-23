@@ -29,6 +29,7 @@ class LTR381RGBClass {
     void setTimeout(unsigned long timeout = 200);
     int getADCResTime(int resolution);
     int getADCRate(int rate);
+    void setInteruptPersistence(int persistence);
     void enableALSInterrupt();
     void disableALSInterrupt();
     void resetSW();
