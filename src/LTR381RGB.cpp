@@ -33,11 +33,11 @@
 #define LTR381RGB_ALS_THRES_LTV_3            0X26
 
 enum {
-  ADC_RES_16BIT = 0x00,
-  ADC_RES_17BIT = 0x01,
+  ADC_RES_20BIT = 0x00,
+  ADC_RES_19BIT = 0x01,
   ADC_RES_18BIT = 0x02,
-  ADC_RES_19BIT = 0x03,
-  ADC_RES_20BIT = 0x04,
+  ADC_RES_17BIT = 0x03,
+  ADC_RES_16BIT = 0x04,
 };
 
 enum {
@@ -46,6 +46,9 @@ enum {
   ADC_MEAS_RATE_100MS = 0x02,
   ADC_MEAS_RATE_200MS = 0x03,
   ADC_MEAS_RATE_400MS = 0x04,
+  ADC_MEAS_RATE_500MS = 0x05,
+  ADC_MEAS_RATE_1000MS = 0x06,
+  ADC_MEAS_RATE_2000MS = 0x07,
 };
 
 enum {
@@ -71,6 +74,9 @@ int LTR381RGBClass::begin() {
 
   uint8_t res = readRegister(LTR381RGB_PART_ID);
   if ((res & 0xF0) != 0xC0) {
+#ifdef DEBUG
+    dumpReg();
+#endif
     return 0;
   }
 
@@ -79,12 +85,13 @@ int LTR381RGBClass::begin() {
   if ((res & 0x20) != 0) {
     return 0;
   }
-
+  setCalibrations(158, 137, 155, 1, 1, 0);
   enableALSInterrupt();
-  setGain(ALS_CS_GAIN_1);
-
-  setUpperThreshold(10000);
-  setLowerThreshold(100);
+  setGain(ALS_CS_GAIN_18);
+  setMeasurementRate(ADC_MEAS_RATE_25MS);
+  setADCResolution(ADC_RES_16BIT);
+  setUpperThreshold(_upperThreshold);
+  setLowerThreshold(lowerThreshold);
   return 1;
 }
 
@@ -95,15 +102,48 @@ void LTR381RGBClass::end() {
 int LTR381RGBClass::readColors(int& r, int& g, int& b) {
   enableRGB();
   unsigned long start = millis();
-  while(!available() && (millis() - start) < _timeout);
+  while(!available() && (millis() - start) < _timeout) {
+    delay(50);
+  }
+  disableMeas();
   uint8_t buf[9] = {0};
   int res = readRegisters(LTR381RGB_CS_DATA_GREEN, buf, 9);
   if(res != 1) {
     return 0;
   }
-  g = buf[2] << 16 | buf[1] << 8 | buf[0];
-  r = buf[5] << 16 | buf[4] << 8 | buf[3];
-  b = buf[8] << 16 | buf[7] << 8 | buf[6];
+  if (_calibrated) {
+    int lg = adcToValue((buf[2] << 16 | buf[1] << 8 | buf[0]));
+    int lr = adcToValue((buf[5] << 16 | buf[4] << 8 | buf[3]));
+    int lb = adcToValue((buf[8] << 16 | buf[7] << 8 | buf[6]));
+    r = normAndTrim(lr, _minR, _maxR);
+    g = normAndTrim(lg, _minG, _maxG);
+    b = normAndTrim(lb, _minB, _maxB);
+
+  } else {
+    g = adcToValue((buf[2] << 16 | buf[1] << 8 | buf[0]));
+    r = adcToValue((buf[5] << 16 | buf[4] << 8 | buf[3]));
+    b = adcToValue((buf[8] << 16 | buf[7] << 8 | buf[6]));
+  }
+
+  return 1;
+}
+
+int LTR381RGBClass::readRawColors(int& r, int& g, int& b) {
+  enableRGB();
+  unsigned long start = millis();
+  while(!available() && (millis() - start) < _timeout) {
+    delay(50);
+  }
+  disableMeas();
+  uint8_t buf[9] = {0};
+  int res = readRegisters(LTR381RGB_CS_DATA_GREEN, buf, 9);
+  if(res != 1) {
+    return 0;
+  }
+  int resolution = getADCResolution(_adcResolution);
+  g = resolution & (buf[2] << 16 | buf[1] << 8 | buf[0]);
+  r = resolution & (buf[5] << 16 | buf[4] << 8 | buf[3]);
+  b = resolution & (buf[8] << 16 | buf[7] << 8 | buf[6]);
 
   return 1;
 }
@@ -111,7 +151,10 @@ int LTR381RGBClass::readColors(int& r, int& g, int& b) {
 int LTR381RGBClass::readAmbientLight(int& lux) {
   enableALS();
   unsigned long start = millis();
-  while(!available() && (millis() - start) < _timeout);
+  while(!available() && (millis() - start) < _timeout) {
+    delay(50);
+  }
+  disableMeas();
   uint8_t buf[3] = {0};
   int res = readRegisters(LTR381RGB_ALS_DATA, buf, 3);
   if(res != 1) {
@@ -125,22 +168,31 @@ int LTR381RGBClass::readAmbientLight(int& lux) {
 int LTR381RGBClass::readLux(int& lux) {
   enableALS();
   unsigned long start = millis();
-  while(!available() && (millis() - start) < _timeout);
+  while(!available() && (millis() - start) < _timeout) {
+    delay(50);
+  }
+  disableMeas();
   uint8_t buf[6] = {0};
   int res = readRegisters(LTR381RGB_CS_DATA_IR, buf, 6);
   if(res != 1) {
     return 0;
   }
+  int gain = getLuxGain(_gain);
+  float intTime = getLuxIntTime(_adcResolution);
   int ir = buf[2] << 16 | buf[1] << 8 | buf[0];
   int csg = buf[5] << 16 | buf[4] << 8 | buf[3];
-  lux = ((0.8f*csg)/(_gain*_adcResolution))*(1 - (0.033f*(ir/csg)));
+  lux = ((0.8f*csg)/(gain*intTime))*(1 - (0.033f*(ir/csg)));
+
   return 1;
 }
 
 int LTR381RGBClass::readIR(int& ir) {
   enableALS();
   unsigned long start = millis();
-  while(!available() && (millis() - start) < _timeout);
+  while(!available() && (millis() - start) < _timeout) {
+    delay(50);
+  }
+  disableMeas();
   uint8_t buf[3] = {0};
   int res = readRegisters(LTR381RGB_CS_DATA_IR, buf, 3);
   if(res != 1) {
@@ -152,19 +204,31 @@ int LTR381RGBClass::readIR(int& ir) {
 }
 
 void LTR381RGBClass::setGain(int gain) {
+  if (gain > 0x04) {
+    gain = 0x04;
+  }
+  _gain = gain;
   writeRegister(LTR381RGB_ALS_CS_GAIN, (0x07 & gain));
-  _gain = getLuxGain(gain);
 }
 
 void LTR381RGBClass::setADCResolution(int resolution) {
+  if (resolution > 0x04) {
+    resolution = 0x04;
+  }
   uint8_t res = readRegister(LTR381RGB_ALS_CS_MEAS_RATE);
-  writeRegister(LTR381RGB_ALS_CS_MEAS_RATE, ((res & 0xF8) | resolution));
-  _adcResolution = getLuxResolution(resolution);
+  writeRegister(LTR381RGB_ALS_CS_MEAS_RATE, ((res & 0x8F) | (resolution << 4)));
+  _adcResolution = resolution;
+  setTimeout(getADCResTime(resolution) + getADCRate(_rate));
 }
 
 void LTR381RGBClass::setMeasurementRate(int rate) {
+  if (rate > 0x08) {
+    rate = 0x08;
+  }
+  _rate = rate;
   uint8_t res = readRegister(LTR381RGB_ALS_CS_MEAS_RATE);
-  writeRegister(LTR381RGB_ALS_CS_MEAS_RATE, ((res & 0x8F) | (rate << 4)));
+  writeRegister(LTR381RGB_ALS_CS_MEAS_RATE, ((res & 0xF8) | rate));
+  setTimeout(getADCResTime(_adcResolution) + getADCRate(rate));
 }
 
 void LTR381RGBClass::setUpperThreshold(int utv) {
@@ -175,6 +239,7 @@ void LTR381RGBClass::setUpperThreshold(int utv) {
   writeRegister(LTR381RGB_ALS_THRES_UTV_1, utv0);
   writeRegister(LTR381RGB_ALS_THRES_UTV_2, utv1);
   writeRegister(LTR381RGB_ALS_THRES_UTV_3, 0x0F & utv2);
+  _upperThreshold = utv;
 }
 
 void LTR381RGBClass::setLowerThreshold(int ltv) {
@@ -185,15 +250,62 @@ void LTR381RGBClass::setLowerThreshold(int ltv) {
   writeRegister(LTR381RGB_ALS_THRES_LTV_1, ltv0);
   writeRegister(LTR381RGB_ALS_THRES_LTV_2, ltv1);
   writeRegister(LTR381RGB_ALS_THRES_LTV_3, 0x0F & ltv2);
+  _lowerThreshold = ltv;
 }
 
 void LTR381RGBClass::setTimeout(unsigned long timeout) {
-  _timeout = timeout;
+  if (timeout > 200) {
+    _timeout = timeout;
+  } else {
+    _timeout = 200;
+  }
+}
+
+int LTR381RGBClass::getADCResTime(int resolution) {
+  switch(resolution) {
+    case ADC_RES_16BIT:
+      return 25;
+    case ADC_RES_17BIT:
+      return 50;
+    case ADC_RES_18BIT:
+      return 100;
+    case ADC_RES_19BIT:
+      return 200;
+    case ADC_RES_20BIT:
+      return 400;
+    default:
+      return 100;
+  }
+}
+
+int LTR381RGBClass::getADCRate(int rate) {
+  switch(rate) {
+    case ADC_MEAS_RATE_25MS:
+      return 25;
+    case ADC_MEAS_RATE_50MS:
+      return 50;
+    case ADC_MEAS_RATE_100MS:
+      return 100;
+    case ADC_MEAS_RATE_200MS:
+      return 200;
+    case ADC_MEAS_RATE_400MS:
+      return 400;
+    case ADC_MEAS_RATE_500MS:
+      return 500;
+    case ADC_MEAS_RATE_1000MS:
+      return 1000;
+    case ADC_MEAS_RATE_2000MS:
+      return 2000;
+    case ADC_MEAS_RATE_2000MS + 1:
+      return 2000;
+    default:
+      return 100;
+  }
 }
 
 void LTR381RGBClass::enableALSInterrupt() {
   uint8_t res = readRegister(LTR381RGB_INT_CFG);
-  writeRegister(LTR381RGB_INT_CFG, res | 0x03);
+  writeRegister(LTR381RGB_INT_CFG, res | 0x04);
 }
 
 void LTR381RGBClass::disableALSInterrupt() {
@@ -204,6 +316,37 @@ void LTR381RGBClass::disableALSInterrupt() {
 void LTR381RGBClass::resetSW() {
   uint8_t res = readRegister(LTR381RGB_MAIN_CTRL);
   writeRegister(LTR381RGB_MAIN_CTRL, res | 0x80);
+}
+
+void LTR381RGBClass::setCalibrations(int rmax, int gmax, int bmax, int rmin, int gmin, int bmin) {
+  _maxR = rmax;
+  _maxG = gmax;
+  _maxB = bmax;
+  _minR = rmin;
+  _minG = gmin;
+  _minB = bmin;
+  _calibrated = true;
+}
+
+void LTR381RGBClass::dumpReg() {
+  for (int i = 0x00; i < 0x27; i++) {
+    if(i == 0x01 || i == 0x02  || i ==0x03 || i == 0x08 || i == 0x09
+                 || i == 016 || i == 0x17 || i == 0x18 || i == 0x1B || i == 0x1C
+                             || i == 0x1D || i == 0x1E || i == 0x1F || i == 0x20) {
+      Serial.print("ADDRESS 0x");
+      Serial.print(i, HEX);
+      Serial.println(" IS RESERVED");
+      continue;
+    }
+
+    int res = readRegister(i);
+    Serial.print("REGISTER ADDRESS 0x");
+    Serial.print(i, HEX);
+    Serial.print(" VALUE= 0x");
+    Serial.print(res, HEX);
+    Serial.print(":");
+    Serial.println(res, BIN);
+  }
 }
 
 int LTR381RGBClass::getLuxGain(int gain) {
@@ -218,11 +361,29 @@ int LTR381RGBClass::getLuxGain(int gain) {
       return 9;
     case ALS_CS_GAIN_18:
       return 18;
+    default:
+      return 6;
   }
-  return _gain;
 }
 
-float LTR381RGBClass::getLuxResolution(int resolution) {
+int LTR381RGBClass::getADCResolution(int resolution) {
+  switch(resolution) {
+    case ADC_RES_16BIT:
+      return 65534;
+    case ADC_RES_17BIT:
+      return 131071;
+    case ADC_RES_18BIT:
+      return 262143;
+    case ADC_RES_19BIT:
+      return 524287;
+    case ADC_RES_20BIT:
+      return 1048575;
+    default:
+      return 262143;
+  }
+}
+
+float LTR381RGBClass::getLuxIntTime(int resolution) {
   switch(resolution) {
     case ADC_RES_16BIT:
       return 0.25;
@@ -234,12 +395,25 @@ float LTR381RGBClass::getLuxResolution(int resolution) {
       return 2.0f;
     case ADC_RES_20BIT:
       return 4.0f;
+    default:
+      return 1.0f;
   }
-  return _adcResolution;
 }
 
 int LTR381RGBClass::available() {
   auto res = readRegister(LTR381RGB_MAIN_STATUS);
+  if ((res & 0x20) == 0x20) {
+    Serial.println("Power-On event happens");
+    resetSW();
+#ifdef DEBUG
+    dumpReg();
+#endif
+    // clear the reading after the reset
+    res = readRegister(LTR381RGB_MAIN_STATUS);
+    setADCResolution(_adcResolution);
+    setGain(_gain);
+    return 0;
+  }
   if ((res & 0x08) == 0x08) {
     return 1;
   }
@@ -253,6 +427,28 @@ void LTR381RGBClass::enableRGB() {
 void LTR381RGBClass::enableALS() {
   writeRegister(LTR381RGB_MAIN_CTRL, 0x02);
 }
+
+void LTR381RGBClass::disableMeas() {
+  writeRegister(LTR381RGB_MAIN_CTRL, 0x00);
+}
+
+int LTR381RGBClass::normAndTrim(int color, int min, int max) {
+  color = (color - min)*255/(max - min);
+  if (color < 0) {
+    color = 0;
+  }
+  if (color > 255) {
+    color = 255;
+  }
+  return color;
+
+}
+
+int LTR381RGBClass::adcToValue(int adc) {
+  int resolution = getADCResolution(_adcResolution);
+  return ((resolution & adc)*255/(resolution));;
+}
+
 
 int LTR381RGBClass::readRegister(uint8_t address) {
   uint8_t value;
