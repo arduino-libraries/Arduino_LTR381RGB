@@ -25,19 +25,24 @@ void setup() {
 }
 
 void loop() {
-  int r, g, b, rawlux;
-  int lux;
+  int r, g, b, rawlux, lux, ir;
+
+  if (RGB.readIR(ir)) {
+    Serial.print("IR: ");
+    Serial.print(ir);
+    Serial.println();
+  }
 
   if (RGB.readAmbientLight(lux)) {
     Serial.print("Raw Lux: ");
     Serial.print(rawlux);
-    Serial.print("\t");
+    Serial.println();
   }
 
   if (RGB.readLux(lux)) {
     Serial.print("Lumen: ");
     Serial.print(lux);
-    Serial.print("\t");
+    Serial.println();
   }
 
   if (RGB.readColors(r, g, b)) {
