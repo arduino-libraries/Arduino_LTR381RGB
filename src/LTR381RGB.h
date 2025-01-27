@@ -64,8 +64,8 @@ class LTR381RGBClass {
     void resetSW();
     void setCalibrations(int rmax, int gmax, int bmax, int rmin, int gmin, int bmin);
     void setCallback(callback_f callback);
-    void getHSV(int r, int g, int b, int& h, int& s, int& v);
-    void getHSL(int r, int g, int b, int& h, int& s, int& l);
+    void getHSV(int r, int g, int b, float& h, float& s, float& v);
+    void getHSL(int r, int g, int b,  float& h, float& s, float& l);
   private:
     void getALS(uint8_t * buf, int& ir, int& rawlux, int& lux);
     void getColors(uint8_t * buf, int& r, int& g, int& b);

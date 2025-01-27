@@ -53,18 +53,16 @@ int LTR381RGBClass::begin(int gain, int rate, int resolution, int pin, int ut, i
 #endif
     return 0;
   }
-
+  // Clear the power-on event bit after the first initialization
   res = readRegister(LTR381RGB_MAIN_STATUS);
-  // Check if Power-On event happens
-  if ((res & 0x20) != 0) {
-    return 0;
-  }
+
   if(pin > -1) {
     pinMode(pin, INPUT);
     attachInterrupt(digitalPinToInterrupt(pin), _callback, FALLING);
     enableALSInterrupt();
     _irq = true;
   }
+
   setGain(gain);
   setMeasurementRate(rate);
   setADCResolution(resolution);
@@ -330,7 +328,7 @@ void LTR381RGBClass::setCallback(callback_f callback) {
   _callback = callback;
 }
 
-void LTR381RGBClass::getHSV(int r, int g, int b, int& h, int& s, int& v) {
+void LTR381RGBClass::getHSV(int r, int g, int b, float& h, float& s, float& v) {
   float red = r/255.0;
   float green = g/255.0;
   float blue = b/255.0;
@@ -340,11 +338,11 @@ void LTR381RGBClass::getHSV(int r, int g, int b, int& h, int& s, int& v) {
   if(delta == 0) {
     h = 0;
   } else if (cmax == red) {
-    h = fmod((60*((green - blue) / delta)),6);
+    h = 60*fmod((((green - blue) / delta)),6);
   } else if(cmax == green) {
-    h = (60*((blue - red) / delta)) + 2;
+    h = 60*(((blue - red) / delta) + 2);
   } else {
-    h = (60*((red - green) / delta)) + 4;
+    h = 60*(((red - green) / delta) + 4);
   }
 
   if(cmax == 0) {
@@ -353,10 +351,11 @@ void LTR381RGBClass::getHSV(int r, int g, int b, int& h, int& s, int& v) {
     s = delta/cmax;
   }
 
-  v = cmax;
+  v = cmax * 100.0;
+  s = s*100;
 }
 
-void LTR381RGBClass::getHSL(int r, int g, int b, int& h, int& s, int& l) {
+void LTR381RGBClass::getHSL(int r, int g, int b, float& h, float& s, float& l) {
   float red = r/255.0;
   float green = g/255.0;
   float blue = b/255.0;
@@ -367,18 +366,20 @@ void LTR381RGBClass::getHSL(int r, int g, int b, int& h, int& s, int& l) {
   if(delta == 0) {
     h = 0;
   } else if (cmax == red) {
-    h = fmod((60*((green - blue) / delta)),6);
+    h = 60*fmod((((green - blue) / delta)),6);
   } else if(cmax == green) {
-    h = (60*((blue - red) / delta)) + 2;
+    h = 60* (( (blue - red) / delta) + 2);
   } else {
-    h = (60*((red - green) / delta)) + 4;
+    h = 60*(((red - green) / delta) + 4);
   }
 
   if(delta == 0) {
-    s = 0;
+    s = 0.0;
   } else {
-    s = delta/(1 - abs(2*l -1));
+    s = (delta/(1 - abs(2*l -1)));
   }
+  l = l*100;
+  s= s*100;
 }
 
 void LTR381RGBClass::getALS(uint8_t * buf, int& ir, int& rawlux, int& lux) {
