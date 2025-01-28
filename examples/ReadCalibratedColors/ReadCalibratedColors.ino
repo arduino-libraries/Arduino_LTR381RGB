@@ -14,12 +14,12 @@
 #include "Arduino_LTR381RGB.h"
 
 // Modify these values with the calibration parameters
-#define MAX_RED  255;
-#define MAX_GREEN  255;
-#define MAX_BLUE  255;
-#define MIN_RED  0;
-#define MIN_GREEN  0;
-#define MIN_BLUE  0;
+#define MAX_RED  255
+#define MAX_GREEN  255
+#define MAX_BLUE  255
+#define MIN_RED  0
+#define MIN_GREEN  0
+#define MIN_BLUE  0
 
 void setup() {
   Serial.begin(9600);
