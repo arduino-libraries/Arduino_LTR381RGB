@@ -19,13 +19,13 @@
 
 #include "Arduino_LTR381RGB.h"
 
-int maxR = 0;
-int maxG = 0;
-int maxB = 0;
+int maxR = 0x000000;
+int maxG = 0x000000;
+int maxB = 0x000000;
 
-int minR = 255;
-int minG = 255;
-int minB = 255;
+int minR = 0x0FFFFFF;
+int minG = 0x0FFFFFF;
+int minB = 0x0FFFFFF;
 
 void setup() {
   Serial.begin(9600);

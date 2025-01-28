@@ -484,12 +484,15 @@ float LTR381RGBClass::getLuxIntTime(int resolution) {
 int LTR381RGBClass::available() {
   auto res = readRegister(LTR381RGB_MAIN_STATUS);
   if ((res & 0x20) == 0x20) {
+#ifdef DEBUG
     Serial.println("Power-On event happens");
+#endif
     resetSW();
 #ifdef DEBUG
     dumpReg();
 #endif
     // clear the reading after the reset
+    end();
     begin();
     return 0;
   }
