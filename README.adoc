@@ -1,18 +1,9 @@
-// Define the repository information in these attributes
-:repository-owner: arduino-libraries
-:repository-name: Arduino_LTR381RGB
+# 🌈 Arduino LTR381RGB Library
 
-= Modbus Library for Arduino =
+Allows you to read RGB, infrared, and ambient light values from the Lite-On LTR381RGB sensor.
 
-image:https://github.com/{repository-owner}/{repository-name}/actions/workflows/check-arduino.yml/badge.svg["Check Arduino status", link="https://github.com/{repository-owner}/{repository-name}/actions/workflows/check-arduino.yml"]
-image:https://github.com/{repository-owner}/{repository-name}/actions/workflows/compile-examples.yml/badge.svg["Compile Examples status", link="https://github.com/{repository-owner}/{repository-name}/actions/workflows/compile-examples.yml"]
-image:https://github.com/{repository-owner}/{repository-name}/actions/workflows/spell-check.yml/badge.svg["Spell Check status", link="https://github.com/{repository-owner}/{repository-name}/actions/workflows/spell-check.yml"]
+The Lite-On LTR381RGB is a digital light sensor capable of measuring red, green, blue (RGB) color components, infrared (IR) intensity, and ambient light (ALS) levels.
+It communicates over the I²C bus and includes programmable gain, resolution, and interrupt thresholds, making it suitable for applications such as color detection, lux measurement, and automatic brightness or white balance adjustment.
 
-Allows you to read RGB, Infrared and ambient light channels values from LITEON LTR381RGB sensor.
-
-== License ==
-
-Copyright (c) 2025 Arduino SA
-This Source Code Form is subject to the terms of the Mozilla
-Public License (MPL), v 2.0. You can obtain a copy of the MPL
-at http://mozilla.org/MPL/2.0/
+This library provides an easy-to-use API to interface with the Lite-On LTR381RGB color and ambient light sensor.
+It supports RGB, IR, and ALS measurements, as well as automatic calibration, gain and resolution control, interrupt configuration, and color space conversion (HSV/HSL).
