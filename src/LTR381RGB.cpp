@@ -575,4 +575,4 @@ int LTR381RGBClass::writeRegister(uint8_t address, uint8_t value) {
   return 1;
 }
 
-LTR381RGBClass RGB(Wire1, LTR381RGB_ADDRESS);
+LTR381RGBClass RGB(Wire, LTR381RGB_ADDRESS);
