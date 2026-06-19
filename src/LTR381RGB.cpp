@@ -387,8 +387,8 @@ void LTR381RGBClass::getALS(uint8_t * buf, int& ir, int& rawlux, int& lux) {
   int gain = getLuxGain(_gain);
   float intTime = getLuxIntTime(_adcResolution);
 
-  ir = resolution &  buf[2] << 16 | buf[1] << 8 | buf[0];
-  rawlux = resolution & buf[5] << 16 | buf[4] << 8 | buf[3];
+  ir = resolution & ((buf[2] << 16) | (buf[1] << 8) | buf[0]);
+  rawlux = resolution & ((buf[5] << 16) | (buf[4] << 8) | buf[3]);
   lux = ((0.8f*rawlux)/(gain*intTime))*(1 - (0.033f*(ir/rawlux)));
 }
 
